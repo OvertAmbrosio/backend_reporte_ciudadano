@@ -1,0 +1,14 @@
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
+export enum ReportStatus {
+  PENDING = 'PENDING',
+  VALIDATED = 'VALIDATED',
+  OBSERVED = 'OBSERVED',
+  REJECTED = 'REJECTED',
+  IN_PROCESS = 'IN_PROCESS',
+  CANCELLED = 'CANCELLED',
+  FINALIZED = 'FINALIZED',
+}
