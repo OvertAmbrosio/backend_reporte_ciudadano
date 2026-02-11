@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
 import { AuthModule } from './auth/auth.module';
 import { SeedModule } from './database/seeds/seed.module';
+import { CategoriesModule } from './categories/categories.module';
 
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -32,6 +33,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ReportsModule,
     AuthModule,
     SeedModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [

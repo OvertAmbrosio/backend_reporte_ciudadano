@@ -10,6 +10,8 @@ import { ReportHistory } from './entities/report-history.entity';
 import { ReportStatus } from '../common/enums';
 import { UpdateReportStatusDto } from './dto/update-report-status.dto';
 import { GetReportsFilterDto } from './dto/get-reports-filter.dto';
+import { CategoriesService } from '../categories/categories.service';
+
 
 @Injectable()
 export class ReportsService {
@@ -21,6 +23,7 @@ export class ReportsService {
     @InjectRepository(ReportHistory) // Inject History Repo
     private readonly reportHistoryRepository: Repository<ReportHistory>,
     private readonly geocodingService: GeocodingService,
+    private readonly categoriesService: CategoriesService,
   ) { }
 
   async create(createReportDto: CreateReportDto, user: User) {
@@ -36,6 +39,9 @@ export class ReportsService {
       throw new BadRequestException('Has alcanzado el límite de 2 reportes activos (Pendiente o Validado).');
     }
 
+    // Validate Category
+    const category = await this.categoriesService.findOne(createReportDto.categoryId);
+
     // 1. Get location data
     const locationData = await this.geocodingService.getAddress(
       createReportDto.latitude,
@@ -46,6 +52,7 @@ export class ReportsService {
     const report = this.reportRepository.create({
       ...createReportDto,
       user,
+      category,
       status: ReportStatus.PENDING, // Default status
       country: locationData.country,
       department: locationData.department,
@@ -127,6 +134,33 @@ export class ReportsService {
     }
 
     return query.getMany();
+  }
+
+  async findNearby(latitude: number, longitude: number, radius: number = 10) {
+    // Haversine Formula Implementation for MySQL
+    // 6371 is Earth's radius in KM
+    return this.reportRepository
+      .createQueryBuilder('report')
+      .leftJoinAndSelect('report.user', 'user')
+      .leftJoinAndSelect('report.category', 'category')
+      .leftJoinAndSelect('report.images', 'images')
+      .addSelect(
+        `(
+        6371 * acos(
+          cos(radians(:lat)) * 
+          cos(radians(report.latitude)) * 
+          cos(radians(report.longitude) - radians(:long)) + 
+          sin(radians(:lat)) * 
+          sin(radians(report.latitude))
+        )
+      )`,
+        'distance',
+      )
+      .where('report.status IN (:...statuses)', { statuses: [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS] })
+      .having('distance <= :radius')
+      .setParameters({ lat: latitude, long: longitude, radius })
+      .orderBy('distance', 'ASC') // Closest first
+      .getMany();
   }
 
   findOne(id: number) {

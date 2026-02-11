@@ -3,6 +3,7 @@ import { User } from '../../users/entities/user.entity';
 import { ReportStatus } from '../../common/enums';
 import { ReportImage } from './report-image.entity';
 import { ReportHistory } from './report-history.entity';
+import { Category } from '../../categories/entities/category.entity';
 
 @Entity('reports')
 export class Report {
@@ -40,6 +41,13 @@ export class Report {
 
   @Column()
   user_id: number;
+
+  @ManyToOne(() => Category, (category) => category.reports)
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
+
+  @Column()
+  category_id: number;
 
   // Location data derived by admin
   @Column({ nullable: true })

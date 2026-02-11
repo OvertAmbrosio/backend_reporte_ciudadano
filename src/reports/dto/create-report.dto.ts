@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsNotEmpty, IsOptional, MaxLength, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsOptional, MaxLength, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @ValidatorConstraint({ name: 'isBase64Image', async: false })
 export class IsBase64ImageConstraint implements ValidatorConstraintInterface {
@@ -47,4 +48,9 @@ export class CreateReportDto {
   @IsNotEmpty()
   @Validate(IsBase64ImageConstraint)
   imageBase64: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  @Type(() => Number)
+  categoryId: number;
 }

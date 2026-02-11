@@ -73,10 +73,16 @@ Usa estas credenciales para obtener un Token JWT en el endpoint de Login y acced
 
 ### Reportes
 - `GET /reports`: Listar todos los reportes (Soporta filtros: `?status=PENDING`, `?userId=1`).
-- `POST /reports`: Crear reporte (Requiere imagen en Base64 y ubicación).
+- `GET /reports/nearby`: Buscar reportes cercanos (Params: `lat`, `long`, `radius=10`).
+- `POST /reports`: Crear reporte (Requiere `categoryId`, imagen en Base64 y ubicación).
 - `GET /reports/user`: Ver mis reportes.
 - `PATCH /reports/:id/status`: Cambiar estado de reporte (Solo Admin).
 - `POST /reports/:id/comment`: Agregar comentario administrativo (Solo Admin).
+
+### Categorías
+- `GET /categories`: Listar todas las categorías.
+- `POST /categories`: Crear categoría (Solo Admin).
+- `PATCH /categories/:id`: Actualizar categoría (Solo Admin).
 
 ### Usuarios
 - `GET /users/profile`: Ver mi perfil.

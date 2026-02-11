@@ -7,6 +7,92 @@
 	},
 	"item": [
 		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "List Categories",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Nueva Categoría\",\n    \"code\": \"NUEVA\",\n    \"description\": \"Descripción de prueba\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Categoría Actualizada\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Auth",
 			"item": [
 				{
@@ -200,6 +286,47 @@
 			"name": "Reports",
 			"item": [
 				{
+					"name": "Get Nearby Reports",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/nearby?lat=-12.046374&long=-77.042793&radius=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"nearby"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "-12.046374",
+									"description": "User Latitude"
+								},
+								{
+									"key": "long",
+									"value": "-77.042793",
+									"description": "User Longitude"
+								},
+								{
+									"key": "radius",
+									"value": "10",
+									"description": "Radius in KM (Default 10)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Create Report",
 					"request": {
 						"method": "POST",
@@ -212,7 +339,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Reporte de Prueba\",\n    \"latitude\": -12.046374,\n    \"longitude\": -77.042793,\n    \"description\": \"Descripcion del reporte...\",\n    \"reference\": \"Cerca al parque\",\n    \"imageBase64\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=\"\n}",
+							"raw": "{\n    \"title\": \"Reporte de Prueba\",\n    \"latitude\": -12.046374,\n    \"longitude\": -77.042793,\n    \"description\": \"Descripcion del reporte...\",\n    \"reference\": \"Cerca al parque\",\n    \"categoryId\": 1,\n    \"imageBase64\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
