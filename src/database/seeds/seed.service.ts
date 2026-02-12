@@ -45,9 +45,15 @@ export class SeedService implements OnModuleInit {
       { name: 'Parques y Jardines', code: 'PARQUES', description: 'Mantenimiento de áreas verdes, juegos.' },
     ];
 
+    const existingCategories = await this.categoriesService.findAll();
+    const existingCodes = new Set(existingCategories.map(c => c.code));
+
     for (const cat of categories) {
-      await this.categoriesService.create(cat);
+      if (!existingCodes.has(cat.code)) {
+        await this.categoriesService.create(cat);
+        console.log(`Category ${cat.name} created.`);
+      }
     }
-    console.log('Default categories seeded.');
+    console.log('Categories seeding completed.');
   }
 }
