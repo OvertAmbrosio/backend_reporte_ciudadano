@@ -12,15 +12,9 @@ export class ReportHistory {
   @JoinColumn({ name: 'report_id' })
   report: Report;
 
-  @Column()
-  report_id: number;
-
   @ManyToOne(() => User)
   @JoinColumn({ name: 'admin_id' })
   admin: User | null;
-
-  @Column({ nullable: true })
-  admin_id: number | null;
 
   @Column({ type: 'enum', enum: ReportStatus, nullable: true })
   previous_status: ReportStatus | null;

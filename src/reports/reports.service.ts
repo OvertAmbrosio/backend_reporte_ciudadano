@@ -71,7 +71,7 @@ export class ReportsService {
     }
 
     // 4. Log to History (Initial PENDING state)
-    await this.logHistory(savedReport, null, ReportStatus.PENDING, 'Reporte creado');
+    await this.logHistory(savedReport, null, ReportStatus.PENDING, 'Reporte creado', user);
 
     return savedReport;
   }
