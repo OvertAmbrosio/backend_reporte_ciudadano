@@ -7,7 +7,7 @@ export class UsersController {
 
   @Get('profile')
   async getProfile(@Request() req: any) {
-    const user = await this.usersService.findOne(req.user.userId);
+    const user = await this.usersService.findOne(req.user.id);
     if (!user) return null;
     return {
       id: user.id,
@@ -20,7 +20,7 @@ export class UsersController {
 
   @Post('change-password')
   async changePassword(@Request() req: any, @Body() body: any) {
-    return this.usersService.updatePassword(req.user.userId, body.password);
+    return this.usersService.updatePassword(req.user.id, body.password);
   }
 
   @Get()
@@ -35,7 +35,7 @@ export class UsersController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() body: any, @Request() req: any) {
-    if (req.user.userId !== +id && req.user.role !== 'ADMIN') {
+    if (req.user.id !== +id && req.user.role !== 'ADMIN') {
       throw new ForbiddenException('No tienes permiso para actualizar este usuario');
     }
     return this.usersService.update(+id, body);

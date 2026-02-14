@@ -22,7 +22,7 @@ export class ReportsController {
 
   @Get('user')
   findByUser(@Request() req: any) {
-    return this.reportsService.findByUser(req.user.userId);
+    return this.reportsService.findByUser(req.user.id);
   }
 
   @Get()
