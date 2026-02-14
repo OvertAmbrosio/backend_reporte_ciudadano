@@ -2,7 +2,6 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report } from './entities/report.entity';
-import { GeocodingService } from '../common/services/geocoding.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { User } from '../users/entities/user.entity';
 import { ReportImage } from './entities/report-image.entity';
@@ -10,7 +9,10 @@ import { ReportHistory } from './entities/report-history.entity';
 import { ReportStatus } from '../common/enums';
 import { UpdateReportStatusDto } from './dto/update-report-status.dto';
 import { GetReportsFilterDto } from './dto/get-reports-filter.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
 import { CategoriesService } from '../categories/categories.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ReportCreatedEvent } from './events/report-created.event';
 
 
 @Injectable()
@@ -22,7 +24,7 @@ export class ReportsService {
     private readonly reportImageRepository: Repository<ReportImage>,
     @InjectRepository(ReportHistory) // Inject History Repo
     private readonly reportHistoryRepository: Repository<ReportHistory>,
-    private readonly geocodingService: GeocodingService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly categoriesService: CategoriesService,
   ) { }
 
@@ -42,39 +44,50 @@ export class ReportsService {
     // Validate Category
     const category = await this.categoriesService.findOne(createReportDto.categoryId);
 
-    // 1. Get location data
-    const locationData = await this.geocodingService.getAddress(
-      createReportDto.latitude,
-      createReportDto.longitude,
-    );
-
     // 2. Create Report Entity
     const report = this.reportRepository.create({
       ...createReportDto,
       user,
       category,
       status: ReportStatus.PENDING, // Default status
-      country: locationData.country,
-      department: locationData.department,
-      district: locationData.district,
-      address: createReportDto.address || locationData.full_address,
+      reference: createReportDto.reference,
+      address: createReportDto.address || "Procesando ubicacion...",
     });
 
     const savedReport = await this.reportRepository.save(report);
 
-    // 3. Save Image
-    if (createReportDto.imageBase64) {
-      const image = this.reportImageRepository.create({
-        report: savedReport,
-        image_url: createReportDto.imageBase64,
-      });
-      await this.reportImageRepository.save(image);
+    // Emit event
+    this.eventEmitter.emit('report.created', new ReportCreatedEvent(savedReport));
+
+    // 3. Save Images (Multiple)
+    if (createReportDto.imagesBase64 && createReportDto.imagesBase64.length > 0) {
+      const images = createReportDto.imagesBase64.map(base64 =>
+        this.reportImageRepository.create({
+          report: savedReport,
+          image_url: base64,
+        })
+      );
+      await this.reportImageRepository.save(images);
     }
 
     // 4. Log to History (Initial PENDING state)
     await this.logHistory(savedReport, null, ReportStatus.PENDING, 'Reporte creado');
 
     return savedReport;
+  }
+
+  async updateLocation(id: number, locationData: UpdateLocationDto) {
+    const report = await this.findOne(id);
+    if (!report) return;
+
+    report.district = locationData.district;
+    report.department = locationData.department;
+    report.country = locationData.country;
+    if (locationData.address) {
+      report.address = locationData.address;
+    }
+
+    return this.reportRepository.save(report);
   }
 
   async updateStatus(id: number, updateStatusDto: UpdateReportStatusDto, adminUser: User) {
@@ -107,6 +120,12 @@ export class ReportsService {
     await this.logHistory(report, report.status, report.status, comment, adminUser);
 
     return { message: 'Comentario agregado' };
+  }
+
+  async addSystemLog(id: number, comment: string) {
+    const report = await this.findOne(id);
+    if (!report) return;
+    await this.logHistory(report, report.status, report.status, comment);
   }
 
   async findByUser(userId: number) {

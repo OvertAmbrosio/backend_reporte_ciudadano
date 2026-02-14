@@ -339,7 +339,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Reporte de Prueba\",\n    \"latitude\": -12.046374,\n    \"longitude\": -77.042793,\n    \"description\": \"Descripcion del reporte...\",\n    \"reference\": \"Cerca al parque\",\n    \"categoryId\": 1,\n    \"imageBase64\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=\"\n}",
+							"raw": "{\n    \"title\": \"Reporte de Prueba\",\n    \"latitude\": -12.046374,\n    \"longitude\": -77.042793,\n    \"description\": \"Descripcion del reporte...\",\n    \"reference\": \"Cerca al parque\",\n    \"categoryId\": 1,\n    \"imagesBase64\": [\n        \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=\",\n        \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=\"\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"

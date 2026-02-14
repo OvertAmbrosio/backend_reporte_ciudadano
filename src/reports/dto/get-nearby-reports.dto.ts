@@ -20,6 +20,6 @@ export class GetNearbyReportsDto {
   @IsNumber()
   @Type(() => Number)
   @Min(0.1)
-  @Max(100) // Max 100km radius safety
+  @Max(30) // Max 100km radius safety
   radius: number = 10; // Default 10km
 }

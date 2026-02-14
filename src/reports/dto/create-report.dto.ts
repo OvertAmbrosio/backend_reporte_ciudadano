@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsNotEmpty, IsOptional, MaxLength, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, IsInt } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsOptional, MaxLength, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, IsInt, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 
 @ValidatorConstraint({ name: 'isBase64Image', async: false })
@@ -44,10 +44,11 @@ export class CreateReportDto {
   @MaxLength(500)
   description: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Validate(IsBase64ImageConstraint)
-  imageBase64: string;
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(3)
+  @Validate(IsBase64ImageConstraint, { each: true })
+  imagesBase64: string[];
 
   @IsInt()
   @IsNotEmpty()
