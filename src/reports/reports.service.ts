@@ -159,26 +159,28 @@ export class ReportsService {
     const statuses = [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS];
 
     const nearbyIds: { id: number }[] = await this.reportRepository.query(
-      `SELECT r.id,
-        (
-          6371 * ACOS(
-            COS(RADIANS(?)) *
-            COS(RADIANS(r.latitude)) *
-            COS(RADIANS(r.longitude) - RADIANS(?)) +
-            SIN(RADIANS(?)) *
-            SIN(RADIANS(r.latitude))
-          )
-        ) AS distance
-      FROM reports r
-      WHERE r.status IN (${statuses.map(() => '?').join(',')})
-      HAVING distance <= ?
-      ORDER BY distance ASC`,
+      `SELECT sub.id FROM (
+        SELECT r.id,
+          (
+            6371 * ACOS(
+              LEAST(1, COS(RADIANS(?)) *
+              COS(RADIANS(r.latitude)) *
+              COS(RADIANS(r.longitude) - RADIANS(?)) +
+              SIN(RADIANS(?)) *
+              SIN(RADIANS(r.latitude)))
+            )
+          ) AS distance
+        FROM reports r
+        WHERE r.status IN (${statuses.map(() => '?').join(',')})
+      ) AS sub
+      WHERE sub.distance <= ?
+      ORDER BY sub.distance ASC`,
       [latitude, longitude, latitude, ...statuses, radius],
     );
 
     if (nearbyIds.length === 0) return [];
 
-    const ids = nearbyIds.map(r => r.id);
+    const ids = nearbyIds.map((r: { id: number }) => r.id);
     return this.reportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.user', 'user')
