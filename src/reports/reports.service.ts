@@ -156,8 +156,7 @@ export class ReportsService {
   }
 
   async findNearby(latitude: number, longitude: number, radius: number = 10) {
-    // Haversine Formula Implementation for MySQL
-    // 6371 is Earth's radius in KM
+
     const haversine = `(
       6371 * acos(
         cos(radians(:lat)) * 
