@@ -158,28 +158,28 @@ export class ReportsService {
   async findNearby(latitude: number, longitude: number, radius: number = 10) {
     // Haversine Formula Implementation for MySQL
     // 6371 is Earth's radius in KM
+    const haversine = `(
+      6371 * acos(
+        cos(radians(:lat)) * 
+        cos(radians(report.latitude)) * 
+        cos(radians(report.longitude) - radians(:long)) + 
+        sin(radians(:lat)) * 
+        sin(radians(report.latitude))
+      )
+    )`;
+
     return this.reportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.user', 'user')
       .leftJoinAndSelect('report.category', 'category')
       .leftJoinAndSelect('report.images', 'images')
-      .addSelect(
-        `(
-        6371 * acos(
-          cos(radians(:lat)) * 
-          cos(radians(report.latitude)) * 
-          cos(radians(report.longitude) - radians(:long)) + 
-          sin(radians(:lat)) * 
-          sin(radians(report.latitude))
-        )
-      )`,
-        'distance',
-      )
+      .addSelect(haversine, 'distance')
       .where('report.status IN (:...statuses)', { statuses: [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS] })
-      .having('distance <= :radius')
+      .andWhere(`${haversine} <= :radius`)
       .setParameters({ lat: latitude, long: longitude, radius })
-      .orderBy('distance', 'ASC') // Closest first
-      .getMany();
+      .orderBy(haversine, 'ASC')
+      .getRawAndEntities()
+      .then(result => result.entities);
   }
 
   findOne(id: number) {
