@@ -156,29 +156,36 @@ export class ReportsService {
   }
 
   async findNearby(latitude: number, longitude: number, radius: number = 10) {
+    const statuses = [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS];
 
-    const haversine = `(
-      6371 * acos(
-        cos(radians(:lat)) * 
-        cos(radians(report.latitude)) * 
-        cos(radians(report.longitude) - radians(:long)) + 
-        sin(radians(:lat)) * 
-        sin(radians(report.latitude))
-      )
-    )`;
+    const nearbyIds: { id: number }[] = await this.reportRepository.query(
+      `SELECT r.id,
+        (
+          6371 * ACOS(
+            COS(RADIANS(?)) *
+            COS(RADIANS(r.latitude)) *
+            COS(RADIANS(r.longitude) - RADIANS(?)) +
+            SIN(RADIANS(?)) *
+            SIN(RADIANS(r.latitude))
+          )
+        ) AS distance
+      FROM reports r
+      WHERE r.status IN (${statuses.map(() => '?').join(',')})
+      HAVING distance <= ?
+      ORDER BY distance ASC`,
+      [latitude, longitude, latitude, ...statuses, radius],
+    );
 
+    if (nearbyIds.length === 0) return [];
+
+    const ids = nearbyIds.map(r => r.id);
     return this.reportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.user', 'user')
       .leftJoinAndSelect('report.category', 'category')
       .leftJoinAndSelect('report.images', 'images')
-      .addSelect(haversine, 'distance')
-      .where('report.status IN (:...statuses)', { statuses: [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS] })
-      .andWhere(`${haversine} <= :radius`)
-      .setParameters({ lat: latitude, long: longitude, radius })
-      .orderBy(haversine, 'ASC')
-      .getRawAndEntities()
-      .then(result => result.entities);
+      .whereInIds(ids)
+      .getMany();
   }
 
   findOne(id: number) {
