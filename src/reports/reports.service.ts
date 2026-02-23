@@ -131,7 +131,7 @@ export class ReportsService {
   async findByUser(userId: number) {
     return this.reportRepository.find({
       where: { user: { id: userId } },
-      relations: ['images'],
+      relations: ['images', 'category'],
       order: { created_at: 'DESC' },
     });
   }
