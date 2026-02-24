@@ -13,7 +13,7 @@ export class ReportImage {
   @Column()
   report_id: number;
 
-  @Column({ type: 'text', comment: 'Base64 or URL' })
+  @Column({ type: 'longtext', comment: 'Base64 or URL' })
   image_url: string;
 
   @CreateDateColumn()

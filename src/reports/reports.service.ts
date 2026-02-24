@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Report } from './entities/report.entity';
 import { CreateReportDto } from './dto/create-report.dto';
 import { User } from '../users/entities/user.entity';
@@ -158,16 +158,20 @@ export class ReportsService {
   async findNearby(latitude: number, longitude: number, radius: number = 10) {
     const statuses = [ReportStatus.PENDING, ReportStatus.VALIDATED, ReportStatus.IN_PROCESS];
 
+    console.log(`[findNearby] Searching within ${radius}km of (${latitude}, ${longitude})`);
+
     const nearbyIds: { id: number }[] = await this.reportRepository.query(
       `SELECT sub.id FROM (
         SELECT r.id,
           (
             6371 * ACOS(
-              LEAST(1, COS(RADIANS(?)) *
-              COS(RADIANS(r.latitude)) *
-              COS(RADIANS(r.longitude) - RADIANS(?)) +
-              SIN(RADIANS(?)) *
-              SIN(RADIANS(r.latitude)))
+              GREATEST(-1, LEAST(1, 
+                COS(RADIANS(?)) *
+                COS(RADIANS(r.latitude)) *
+                COS(RADIANS(r.longitude) - RADIANS(?)) +
+                SIN(RADIANS(?)) *
+                SIN(RADIANS(r.latitude))
+              ))
             )
           ) AS distance
         FROM reports r
@@ -178,7 +182,14 @@ export class ReportsService {
       [latitude, longitude, latitude, ...statuses, radius],
     );
 
-    if (nearbyIds.length === 0) return [];
+    console.log(`[findNearby] Found ${nearbyIds.length} candidate IDs`);
+
+    if (nearbyIds.length === 0) {
+      // Diagnostic: Check if any reports exist with these statuses
+      const count = await this.reportRepository.count({ where: { status: In(statuses) } });
+      console.log(`[findNearby] Diagnostic: Total reports with target statuses in DB: ${count}`);
+      return [];
+    }
 
     const ids = nearbyIds.map((r: { id: number }) => r.id);
     return this.reportRepository
@@ -193,7 +204,7 @@ export class ReportsService {
   findOne(id: number) {
     return this.reportRepository.findOne({
       where: { id },
-      relations: ['user', 'images', 'history', 'history.admin'], // Include history
+      relations: ['user', 'images', 'history', 'history.admin', 'category'], // Added category
     });
   }
 
